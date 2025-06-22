@@ -1,8 +1,15 @@
-export default function DashboardHome() {
-  return (
-    <div>
-      <h1 className="text-2xl mb-4">Dashboard</h1>
-      <p>Use the sidebar to navigate your rides, deliveries, or incoming requests.</p>
-    </div>
-  );
+// src/app/dashboard/page.tsx
+'use client';
+
+import { useAuth } from '@/context/AuthContext';
+import RiderDashboardContent from '@/components/dashboard/RiderDashboardContent';
+import ProviderDashboardContent from '@/components/dashboard/ProviderDashboardContent';
+
+export default function DashboardIndex() {
+  const { user } = useAuth();
+
+  // We know by this point user is non-null and loading is false
+  return user!.is_provider
+    ? <ProviderDashboardContent />
+    : <RiderDashboardContent />;
 }

@@ -1,20 +1,23 @@
+// src/app/dashboard/layout.tsx
 'use client';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+import { ReactNode, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
 
+  // redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/auth/login')
+      router.push('/auth/login');
     }
-  }, [loading, user])
+  }, [user, loading, router]);
 
   if (loading || !user) {
-    return <p>Loading...</p>
+    return <div className="p-8">Loading…</div>;
   }
 
   return (
@@ -22,24 +25,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className="w-60 bg-gray-100 p-4">
         <h2 className="text-xl mb-4">Hello, {user.name}</h2>
         <nav className="space-y-2">
-          {!user.is_provider ? (
+          {user.is_provider ? (
+            <>
+              <a href="/dashboard" className="block">Incoming Jobs</a>
+              <a href="/dashboard/earnings" className="block">Earnings</a>
+            </>
+          ) : (
             <>
               <a href="/dashboard" className="block">My Rides</a>
               <a href="/dashboard/deliveries" className="block">My Deliveries</a>
             </>
-          ) : (
-            <>
-              <a href="/dashboard/requests" className="block">Incoming Jobs</a>
-              <a href="/dashboard/earnings" className="block">Earnings</a>
-            </>
           )}
           <a href="/dashboard/profile" className="block">Profile</a>
-          <button onClick={logout} className="mt-4 text-red-600">Log out</button>
+          <button onClick={logout} className="mt-4 text-red-600">
+            Log out
+          </button>
         </nav>
       </aside>
-      <main className="flex-1 p-6">
-        {children}
-      </main>
+      <main className="flex-1 p-6">{children}</main>
     </div>
   );
 }
