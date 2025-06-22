@@ -19,8 +19,8 @@ export default function RiderDashboardContent() {
   if (isLoading) return <p>Loading your rides…</p>;
   if (isError) return <p>Error loading rides.</p>;
 
-  // Assuming data is an array of rides
-  const rides: Ride[] = data || [];
+  // Ensure rides is always an array
+  const rides: Ride[] = Array.isArray(data) ? data : [];
 
   return (
     <div>

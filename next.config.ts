@@ -3,6 +3,11 @@ module.exports = {
   async rewrites() {
     return [
       {
+        source: '/storage/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/storage/:path*`,
+      },
+
+      {
         source: '/sanctum/:path*',
         destination: `${process.env.NEXT_PUBLIC_API_URL}/sanctum/:path*`,
       },
