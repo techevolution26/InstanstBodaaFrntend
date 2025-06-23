@@ -2,13 +2,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useIncomingJobs } from  '../../hooks/useIncomingJobs';
+import { useIncomingJobs } from '../../hooks/useIncomingJobs';
+import GoOnlineToggle from '@/components/GoOnlineToggle';
 
 type Ride = {
   id: number;
   pickup_lat: number;
   pickup_lng: number;
-  // add other fields as needed
+  // will add other fields as needed
 };
 
 export default function ProviderDashboardContent() {
@@ -21,6 +22,7 @@ export default function ProviderDashboardContent() {
 
   return (
     <div>
+      <GoOnlineToggle />
       <ul>
         {jobs.map((ride: Ride) => (
           <li key={ride.id} className="p-4 border rounded">
