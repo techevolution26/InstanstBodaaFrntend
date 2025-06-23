@@ -25,29 +25,35 @@ export default function RiderDashboardContent() {
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">Your Rides</h2>
-      <ul>
-        {rides.map((ride: Ride) => (
-          <li key={ride.id} className="p-4 border rounded mb-2">
-            <p>
-              <strong>Ride #{ride.id}</strong> —{' '}
-              <span className="capitalize">
-                {ride.status.replace('_', ' ')}
-              </span>
-            </p>
-            <p>
-              From ({ride.pickup_lat.toFixed(3)}, {ride.pickup_lng.toFixed(3)}) → (
-              {ride.dropoff_lat.toFixed(3)}, {ride.dropoff_lng.toFixed(3)})
-            </p>
-            <Link
-              href={`/dashboard/rides/${ride.id}`}
-              className="text-blue-600 hover:underline"
-            >
-              View Details →
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {/* pagination controls, if you like… */}
+      {rides.length === 0 ? (
+        <div className="p-4 border rounded mb-2 text-gray-600">
+          No pending rides. Want to <Link href="/dashboard/request" className="text-blue-600 hover:underline">create your first ride</Link>?
+        </div>
+      ) : (
+        <ul>
+          {rides.map((ride: Ride) => (
+            <li key={ride.id} className="p-4 border rounded mb-2">
+              <p>
+                <strong>Ride #{ride.id}</strong> —{' '}
+                <span className="capitalize">
+                  {ride.status.replace('_', ' ')}
+                </span>
+              </p>
+              <p>
+                From ({ride.pickup_lat.toFixed(3)}, {ride.pickup_lng.toFixed(3)}) → (
+                {ride.dropoff_lat.toFixed(3)}, {ride.dropoff_lng.toFixed(3)})
+              </p>
+              <Link
+                href={`/dashboard/rides/${ride.id}`}
+                className="text-blue-600 hover:underline"
+              >
+                View Details →
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      {/* pagination controls, if you  */}
     </div>
   );
 }

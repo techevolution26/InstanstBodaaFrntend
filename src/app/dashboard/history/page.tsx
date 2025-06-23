@@ -1,7 +1,7 @@
 // src/app/dashboard/history/page.tsx
 'use client';
 
-import { useRequests } from '@/hooks/useRequests'; // Adjust the path based on your project structure
+import { useRequests } from '@/hooks/useRequests';
 import Link from 'next/link';
 
 interface Ride {
@@ -27,11 +27,11 @@ export default function RiderHistoryPage() {
           <li key={ride.id} className="p-4 border rounded">
             <p>
               <strong>#{ride.id}</strong> —{' '}
-              <span className="capitalize">{ride.status.replace('_',' ')}</span>
+              <span className="capitalize">{ride.status.replace('_', ' ')}</span>
             </p>
             <p>
-              From ({ride.pickup_lat.toFixed(3)}, {ride.pickup_lng.toFixed(3)}) → (
-              {ride.dropoff_lat.toFixed(3)}, {ride.dropoff_lng.toFixed(3)})
+              From ({Number(ride.pickup_lat).toFixed(3)}, {Number(ride.pickup_lng).toFixed(3)}) → (
+              {Number(ride.dropoff_lat).toFixed(3)}, {Number(ride.dropoff_lng).toFixed(3)})
             </p>
             <Link
               href={`/dashboard/history/${ride.id}`}

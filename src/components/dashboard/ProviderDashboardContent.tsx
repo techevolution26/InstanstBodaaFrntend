@@ -23,21 +23,25 @@ export default function ProviderDashboardContent() {
   return (
     <div>
       <GoOnlineToggle />
-      <ul>
-        {jobs.map((ride: Ride) => (
-          <li key={ride.id} className="p-4 border rounded">
-            <p>
-              <strong>Ride #{ride.id}</strong> — pickup at ({ride.pickup_lat.toFixed(3)}, {ride.pickup_lng.toFixed(3)})
-            </p>
-            <Link
-              href={`/dashboard/requests/${ride.id}`}
-              className="text-blue-600 hover:underline"
-            >
-              View & Accept →
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {jobs.length === 0 ? (
+        <p>No available jobs in your region yet.</p>
+      ) : (
+        <ul>
+          {jobs.map((ride: Ride) => (
+            <li key={ride.id} className="p-4 border rounded">
+              <p>
+                <strong>Ride #{ride.id}</strong> — pickup at ({Number(ride.pickup_lat).toFixed(3)}, {Number(ride.pickup_lng).toFixed(3)})
+              </p>
+              <Link
+                href={`/dashboard/requests/${ride.id}`}
+                className="text-blue-600 hover:underline"
+              >
+                View & Accept →
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

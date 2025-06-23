@@ -39,8 +39,8 @@ export default function LoginPage() {
       <h1 className="text-2xl mb-4">Log In</h1>
       {error && <p className="text-red-600">{error}</p>}
       <form onSubmit={onSubmit} className="space-y-4">
-        <input required type="email" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full" />
-        <input required type="password" placeholder="Password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full" />
+        <input required type="email" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full" />
+        <input required type="password" placeholder="Password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="w-full" />
         <button type="submit" className="w-full py-2 bg-green-600 text-white">Log In</button>
       </form>
       <p className="mt-4 text-center">

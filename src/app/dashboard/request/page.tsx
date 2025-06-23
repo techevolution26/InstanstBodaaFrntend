@@ -16,17 +16,17 @@ export default function CreateRidePage() {
   const router = useRouter();
 
   // default to a city center
-  const [pickup,  setPickup]  = useState<[number,number]>([-1.2921, 36.8219]);
-  const [dropoff, setDropoff] = useState<[number,number]>([-1.2921, 36.8319]);
-  const [error, setError]     = useState('');
+  const [pickup, setPickup] = useState<[number, number]>([-1.2921, 36.8219]);
+  const [dropoff, setDropoff] = useState<[number, number]>([-1.2921, 36.8319]);
+  const [error, setError] = useState('');
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     try {
       await mutate.mutateAsync({
-        pickup_lat:  pickup[0],
-        pickup_lng:  pickup[1],
+        pickup_lat: pickup[0],
+        pickup_lng: pickup[1],
         dropoff_lat: dropoff[0],
         dropoff_lng: dropoff[1],
       });

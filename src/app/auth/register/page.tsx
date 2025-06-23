@@ -39,15 +39,15 @@ export default function RegisterPage() {
       <h1 className="text-2xl mb-4">Create Account</h1>
       {error && <p className="text-red-600">{error}</p>}
       <form onSubmit={onSubmit} className="space-y-4">
-        <input required placeholder="Name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full" />
-        <input required type="email" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full" />
-        <input required placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full" />
+        <input required placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full" />
+        <input required type="email" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full" />
+        <input required placeholder="Phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full" />
         <div className="flex items-center space-x-2">
-          <input type="checkbox" checked={form.is_provider} onChange={e => setForm({...form, is_provider: e.target.checked})} />
+          <input type="checkbox" checked={form.is_provider} onChange={e => setForm({ ...form, is_provider: e.target.checked })} />
           <label>I am a service provider</label>
         </div>
-        <input required type="password" placeholder="Password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full" />
-        <input required type="password" placeholder="Confirm Password" value={form.password_confirmation} onChange={e => setForm({...form, password_confirmation: e.target.value})} className="w-full" />
+        <input required type="password" placeholder="Password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="w-full" />
+        <input required type="password" placeholder="Confirm Password" value={form.password_confirmation} onChange={e => setForm({ ...form, password_confirmation: e.target.value })} className="w-full" />
         <button type="submit" className="w-full py-2 bg-blue-600 text-white">Register</button>
       </form>
       <p className="mt-4 text-center">
