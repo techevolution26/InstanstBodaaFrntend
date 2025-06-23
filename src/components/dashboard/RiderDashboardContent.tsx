@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRides } from '../../app/hooks/useRides';
+import { useRides } from '../../hooks/useRides';
 
 type Ride = {
   id: number;

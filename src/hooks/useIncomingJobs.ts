@@ -11,7 +11,7 @@ export function useIncomingJobs() {
   return useQuery({
     queryKey: ['incomingJobs'],
     queryFn: async () => {
-      const res = await api.get('/api/rides');
+      const res = await api.get('/api/requests');
       // Sanctum/API will return only the provider’s assigned rides
       //endpoint returns all statuses, filter here:
       return res.data.data.filter((r: Ride) => r.status === 'pending');

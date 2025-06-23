@@ -32,8 +32,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </>
           ) : (
             <>
-              <a href="/dashboard" className="block">My Rides</a>
-              <a href="/dashboard/deliveries" className="block">My Deliveries</a>
+              <a href="/dashboard/history" className="block">My Rides</a>
+              <a href="/dashboard/request" className="block">Request Ride</a>
             </>
           )}
           <a href="/dashboard/profile" className="block">Profile</a>

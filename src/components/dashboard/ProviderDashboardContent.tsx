@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useIncomingJobs } from  '../../app/hooks/useIncomingJobs';
+import { useIncomingJobs } from  '../../hooks/useIncomingJobs';
 
 type Ride = {
   id: number;
