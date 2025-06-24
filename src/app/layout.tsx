@@ -2,6 +2,7 @@
 
 "use client";
 import './globals.css'
+import { Toaster } from 'react-hot-toast';
 
 // 1dynamically import the AuthProvider so it's purely client‑side
 import dynamic from 'next/dynamic'
@@ -21,14 +22,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="bg-gradient-to-r from-indigo-50 to-purple-100 text-gray-800">
+        <Toaster position="top-right" />
         <QueryClientProvider client={queryClient}>
-          {/* Now AuthProvider is a client‑only boundary — no server serialization */}
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </QueryClientProvider>
       </body>
     </html>
-  )
+  );
 }

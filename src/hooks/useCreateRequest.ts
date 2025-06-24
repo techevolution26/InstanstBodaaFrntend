@@ -9,6 +9,7 @@ interface RequestPayload {
     pickup_lng: number;
     dropoff_lat: number;
     dropoff_lng: number;
+    type: 'ride' | 'delivery';
 }
 
 interface RequestResponse {

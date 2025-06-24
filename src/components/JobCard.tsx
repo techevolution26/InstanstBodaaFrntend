@@ -1,0 +1,131 @@
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import {
+    MapPinIcon,
+    ClockIcon,
+    TruckIcon,
+    AcademicCapIcon,
+    ArrowTopRightOnSquareIcon,
+    ArrowRightIcon
+} from '@heroicons/react/24/outline';
+
+type JobCardProps = {
+    id: number;
+    pickup_lat: number;
+    pickup_lng: number;
+    dropoff_lat?: number;
+    dropoff_lng?: number;
+    created_at?: string;
+    type?: 'ride' | 'delivery';
+};
+
+export default function JobCard({
+    id,
+    pickup_lat,
+    pickup_lng,
+    dropoff_lat,
+    dropoff_lng,
+    created_at,
+    type = 'ride',
+}: JobCardProps) {
+    const [distance, setDistance] = useState<number | null>(null);
+
+    const calculateDistance = (
+        lat1: number,
+        lon1: number,
+        lat2: number,
+        lon2: number
+    ) => {
+        const R = 6371;
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    };
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                ({ coords }) => {
+                    const d = calculateDistance(
+                        coords.latitude,
+                        coords.longitude,
+                        pickup_lat,
+                        pickup_lng
+                    );
+                    setDistance(d);
+                },
+                () => { }
+            );
+        }
+    }, [pickup_lat, pickup_lng]);
+
+    const timeAgo = () => {
+        if (!created_at) return null;
+        const seconds = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
+        if (seconds < 60) return `${seconds}s ago`;
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+        return `${Math.floor(seconds / 86400)}d ago`;
+    };
+
+    const Icon = type === 'delivery' ? TruckIcon : AcademicCapIcon;
+
+    return (
+        <div className="p-4 bg-white border border-zinc-200 rounded-lg shadow-sm hover:shadow-md transition space-y-2">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1 text-sm font-semibold text-zinc-700">
+                    <Icon className="w-4 h-4" />
+                    {type === 'delivery' ? 'Delivery' : 'Ride'} #{id}
+                </div>
+                {distance !== null && distance < 2 && (
+                    <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                        Nearby
+                    </span>
+                )}
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-zinc-600">
+                <MapPinIcon className="w-4 h-4 text-zinc-500" />
+                <span className="font-mono">
+                    ({Number(pickup_lat).toFixed(5)}, {Number(pickup_lng).toFixed(5)})
+                </span>
+                {dropoff_lat !== undefined && dropoff_lng !== undefined && (
+                    <>
+                        <ArrowRightIcon className="w-4 h-4 text-zinc-400" />
+                        <span className="font-mono">
+                            ({Number(dropoff_lat).toFixed(5)}, {Number(dropoff_lng).toFixed(5)})
+                        </span>
+                    </>
+                )}
+            </div>
+
+            {distance !== null && (
+                <p className="text-xs text-zinc-500">
+                    Estimated distance to pickup: {distance.toFixed(2)} km
+                </p>
+            )}
+
+            {created_at && (
+                <div className="flex items-center gap-1 text-xs text-zinc-400">
+                    <ClockIcon className="w-4 h-4" />
+                    <span>{timeAgo()}</span>
+                </div>
+            )}
+
+            <Link
+                href={`/dashboard/requests/${id}`}
+                className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:underline mt-2"
+            >
+                View & Accept <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            </Link>
+        </div>
+    );
+}

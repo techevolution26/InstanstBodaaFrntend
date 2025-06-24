@@ -1,17 +1,15 @@
-// src/components/MapPicker.tsx
 'use client';
 
-// import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix Leaflet’s default icon URLs
+// Fix Leaflet’s default icon URLs (for SSR-compatible rendering)
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
 type MapPickerProps = {
@@ -21,13 +19,13 @@ type MapPickerProps = {
 };
 
 export default function MapPicker({ position, setPosition, label }: MapPickerProps) {
-  // A sub-component to handle click events
   function LocationMarker() {
     useMapEvents({
       click(e) {
         setPosition([e.latlng.lat, e.latlng.lng]);
       },
     });
+
     return (
       <Marker
         position={position}
@@ -44,14 +42,17 @@ export default function MapPicker({ position, setPosition, label }: MapPickerPro
   }
 
   return (
-    <div className="w-full mb-4 bg-white rounded shadow p-4">
-      <label className="block text-gray-800 font-semibold mb-2">{label}</label>
+    <div className="w-full bg-white rounded-md border border-zinc-200 shadow-sm overflow-hidden mb-6">
+      <div className="px-4 pt-4">
+        <label className="block text-sm font-medium text-zinc-700 mb-1">{label}</label>
+      </div>
       <div className="relative" style={{ height: '300px', minHeight: '200px' }}>
         <MapContainer
           center={position}
           zoom={13}
-          className="absolute inset-0 rounded border border-gray-300"
-          style={{ height: '100%', width: '100%' }}
+          scrollWheelZoom={true}
+          className="absolute inset-0"
+          style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}
         >
           <TileLayer
             attribution="&copy; OpenStreetMap contributors"
@@ -60,9 +61,10 @@ export default function MapPicker({ position, setPosition, label }: MapPickerPro
           <LocationMarker />
         </MapContainer>
       </div>
-      <p className="mt-3 text-sm text-gray-700 font-mono">
-        Lat: <span className="font-bold">{position[0].toFixed(5)}</span>, Lng: <span className="font-bold">{position[1].toFixed(5)}</span>
-      </p>
+      <div className="px-4 py-3 border-t bg-zinc-50 text-sm text-zinc-600 font-mono">
+        Lat: <span className="font-semibold">{position[0].toFixed(5)}</span>, Lng:{' '}
+        <span className="font-semibold">{position[1].toFixed(5)}</span>
+      </div>
     </div>
   );
 }
