@@ -33,6 +33,10 @@ export default function JobCard({
     status = 'pending',
 }: JobCardProps) {
     const [distance, setDistance] = useState<number | null>(null);
+    const [pickupAddr, setPickupAddr] = useState<string | null>('Loading address…');
+    const [dropoffAddr, setDropoffAddr] = useState<string | null>(
+        dropoff_lat != null && dropoff_lng != null ? 'Loading address…' : null
+    );
 
     const calculateDistance = (
         lat1: number,
@@ -68,6 +72,25 @@ export default function JobCard({
             );
         }
     }, [pickup_lat, pickup_lng]);
+
+    useEffect(() => {
+        async function fetchAddress(lat: number, lon: number, setter: (s: string) => void) {
+            try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reverse-geocode?lat=${pickup_lat}&lon=${pickup_lng}`);                const data = await res.json();
+                if (!data || !data.display_name) {
+                    throw new Error('No address found');
+                }
+                setter(data.display_name as string);
+            } catch {
+                setter(`${Number(lat).toFixed(5)}, ${Number(lon).toFixed(5)}`);
+            }
+        }
+
+        fetchAddress(pickup_lat, pickup_lng, setPickupAddr);
+        if (dropoff_lat != null && dropoff_lng != null) {
+            fetchAddress(dropoff_lat, dropoff_lng, setDropoffAddr);
+        }
+    }, [pickup_lat, pickup_lng, dropoff_lat, dropoff_lng]);
 
     const timeAgo = () => {
         if (!created_at) return null;
@@ -114,14 +137,14 @@ export default function JobCard({
 
             <div className="flex items-center gap-2 text-sm text-zinc-600">
                 <MapPinIcon className="w-4 h-4 text-zinc-500" />
-                <span className="font-mono">
-                    ({Number(pickup_lat).toFixed(5)}, {Number(pickup_lng).toFixed(5)})
+                <span className="truncate" title={pickupAddr ?? ''}>
+                    {pickupAddr ?? `(${Number(pickup_lat).toFixed(5)}, ${Number(pickup_lng).toFixed(5)})`}
                 </span>
                 {dropoff_lat !== undefined && dropoff_lng !== undefined && (
                     <>
                         <ArrowRightIcon className="w-4 h-4 text-zinc-400" />
-                        <span className="font-mono">
-                            ({Number(dropoff_lat).toFixed(5)}, {Number(dropoff_lng).toFixed(5)})
+                        <span className="truncate" title={dropoffAddr ?? ''}>
+                            {dropoffAddr ?? `(${Number(dropoff_lat).toFixed(5)}, ${Number(dropoff_lng).toFixed(5)})`}
                         </span>
                     </>
                 )}
