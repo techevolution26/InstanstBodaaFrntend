@@ -18,7 +18,7 @@ type RideCardProps = {
   href?: string;
 };
 
-export default function RideCard({ ride, href = `/dashboard/requests/${ride.id}` }: RideCardProps) {
+export default function RideCard({ ride, href = `/dashboard/history/${ride.id}` }: RideCardProps) {
   const date = new Date(ride.created_at);
   const dateStr = date.toLocaleDateString(undefined, {
     year: 'numeric',
@@ -37,13 +37,16 @@ export default function RideCard({ ride, href = `/dashboard/requests/${ride.id}`
           Ride <span className="font-semibold">#{ride.id}</span>
         </p>
         <span
-          className={`text-xs px-2 py-1 rounded-full font-medium ${
-            ride.status === 'completed'
-              ? 'bg-green-100 text-green-700'
-              : ride.status === 'cancelled'
+          className={`text-xs px-2 py-1 rounded-full font-medium ${ride.status === 'completed'
+            ? 'bg-green-100 text-green-700'
+            : ride.status === 'cancelled'
               ? 'bg-red-100 text-red-700'
-              : 'bg-zinc-100 text-zinc-700'
-          }`}
+              : ride.status === 'pending'
+                ? 'bg-yellow-100 text-yellow-700'
+                : ride.status === 'assigned'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-zinc-100 text-zinc-700'
+            }`}
         >
           {ride.status.replace('_', ' ')}
         </span>

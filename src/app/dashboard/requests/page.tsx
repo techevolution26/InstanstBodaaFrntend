@@ -31,7 +31,7 @@ export default function ProviderQueuePage() {
                 <span className="capitalize">{job.status}</span>
               </p>
               <p>
-                From ({job.pickup_lat.toFixed(3)}, {job.pickup_lng.toFixed(3)})
+                From ({Number(job.pickup_lat).toFixed(3)}, {Number(job.pickup_lng).toFixed(3)})
               </p>
             </div>
             <div className="space-x-2">

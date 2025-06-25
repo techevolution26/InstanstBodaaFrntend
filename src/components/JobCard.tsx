@@ -8,7 +8,7 @@ import {
     TruckIcon,
     AcademicCapIcon,
     ArrowTopRightOnSquareIcon,
-    ArrowRightIcon
+    ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 
 type JobCardProps = {
@@ -19,6 +19,7 @@ type JobCardProps = {
     dropoff_lng?: number;
     created_at?: string;
     type?: 'ride' | 'delivery';
+    status?: 'pending' | 'assigned' | 'completed';
 };
 
 export default function JobCard({
@@ -29,6 +30,7 @@ export default function JobCard({
     dropoff_lng,
     created_at,
     type = 'ride',
+    status = 'pending',
 }: JobCardProps) {
     const [distance, setDistance] = useState<number | null>(null);
 
@@ -78,6 +80,21 @@ export default function JobCard({
 
     const Icon = type === 'delivery' ? TruckIcon : AcademicCapIcon;
 
+    const StatusPill = () => {
+        const base =
+            'text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap';
+        switch (status) {
+            case 'pending':
+                return <span className={`${base} bg-yellow-100 text-yellow-700`}>Pending</span>;
+            case 'assigned':
+                return <span className={`${base} bg-blue-100 text-blue-700`}>Assigned</span>;
+            case 'completed':
+                return <span className={`${base} bg-green-100 text-green-700`}>Completed</span>;
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className="p-4 bg-white border border-zinc-200 rounded-lg shadow-sm hover:shadow-md transition space-y-2">
             <div className="flex items-center justify-between">
@@ -85,11 +102,14 @@ export default function JobCard({
                     <Icon className="w-4 h-4" />
                     {type === 'delivery' ? 'Delivery' : 'Ride'} #{id}
                 </div>
-                {distance !== null && distance < 2 && (
-                    <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                        Nearby
-                    </span>
-                )}
+                <div className="flex gap-2 items-center">
+                    {distance !== null && distance < 2 && (
+                        <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                            Nearby
+                        </span>
+                    )}
+                    <StatusPill />
+                </div>
             </div>
 
             <div className="flex items-center gap-2 text-sm text-zinc-600">
