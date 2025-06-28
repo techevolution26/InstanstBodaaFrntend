@@ -76,7 +76,8 @@ export default function JobCard({
     useEffect(() => {
         async function fetchAddress(lat: number, lon: number, setter: (s: string) => void) {
             try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reverse-geocode?lat=${pickup_lat}&lon=${pickup_lng}`);                const data = await res.json();
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`);
+                const data = await res.json();
                 if (!data || !data.display_name) {
                     throw new Error('No address found');
                 }

@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const navItems = user.is_provider
     ? [
         { href: '/dashboard', label: 'Incoming Jobs', icon: BriefcaseIcon },
-        { href: '/dashboard/earnings', label: 'Earnings', icon: CurrencyDollarIcon },
+        { href: '/dashboard/wallet', label: 'Wallet', icon: CurrencyDollarIcon },
       ]
     : [
         { href: '/dashboard/', label: 'My Rides', icon: ClockIcon },
