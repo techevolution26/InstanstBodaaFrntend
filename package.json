@@ -11,7 +11,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
-    "@tanstack/react-query": "^5.80.10",
+    "@tanstack/react-query": "^5.81.5",
     "axios": "^1.10.0",
     "leaflet": "^1.9.4",
     "next": "15.3.4",
