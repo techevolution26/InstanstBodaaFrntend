@@ -10,6 +10,7 @@ import {
   useRepayLoan,
 } from '@/hooks/useWallet';
 import Link from 'next/link';
+import WalletFundForm from '@/components/WalletFundForm';
 
 type Transaction = {
   id: number | string;
@@ -17,6 +18,13 @@ type Transaction = {
   amount: number;
   created_at: string;
 };
+
+function formatAmount(amount: unknown): string {
+  const n = Number(amount);
+  return Number.isFinite(n)
+    ? `${n < 0 ? '-' : '+'}KES ${Math.abs(n).toFixed(2)}`
+    : 'KES 0.00';
+}
 
 export default function WalletPage() {
   // Balances
@@ -31,6 +39,7 @@ export default function WalletPage() {
 
   // unwrap the `data` array
   const transactions: Transaction[] = txsResponse?.data ?? [];
+  const latestFive = transactions.slice(0, 5);
 
   //Mutations
   const modSavings = useModifySavings();
@@ -73,6 +82,7 @@ export default function WalletPage() {
       </div>
 
       {/* Actions */}
+      <WalletFundForm/>
       <div className="grid grid-cols-2 gap-4">
         {/* Savings deposit/withdraw */}
         <div className="col-span-2 sm:col-span-1 space-y-2">
@@ -141,20 +151,28 @@ export default function WalletPage() {
         {isTxError && (
           <p className="text-sm text-red-600">Failed to load transactions.</p>
         )}
-
         {!isTxLoading && !isTxError && transactions.length === 0 && (
           <p className="text-sm text-gray-500">No transactions found.</p>
         )}
 
-        {!isTxLoading && !isTxError && transactions.length > 0 && (
+        {!isTxLoading && !isTxError && latestFive.length > 0 && (
           <ul className="space-y-2">
-            {transactions.map((tx) => (
-              <li key={tx.id} className="flex justify-between text-sm">
+            {latestFive.map((tx) => (
+              <li
+                key={tx.id}
+                className="flex justify-between text-sm hover:bg-gray-50 p-2 rounded"
+              >
                 <span>
-                  {new Date(tx.created_at).toLocaleDateString()} – {tx.type}
+                  {new Date(tx.created_at).toLocaleDateString()} –{' '}
+                  {new Date(tx.created_at).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  })}{' '}
+                  – <strong className="capitalize">{tx.type.replace(/_/g, ' ')}</strong>
                 </span>
                 <span className={tx.amount < 0 ? 'text-red-600' : 'text-green-600'}>
-                  {tx.amount < 0 ? '-' : '+'}${Math.abs(tx.amount).toFixed(2)}
+                  {formatAmount(tx.amount)}
                 </span>
               </li>
             ))}
