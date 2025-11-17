@@ -1,4 +1,3 @@
-// src/app/dashboard/wallet/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -11,13 +10,7 @@ import {
 } from '@/hooks/useWallet';
 import Link from 'next/link';
 import WalletFundForm from '@/components/WalletFundForm';
-
-type Transaction = {
-  id: number | string;
-  type: string;
-  amount: number;
-  created_at: string;
-};
+import type { Transaction as TTransaction } from '@/types';
 
 function formatAmount(amount: unknown): string {
   const n = Number(amount);
@@ -30,29 +23,84 @@ export default function WalletPage() {
   // Balances
   const { data: overview, isLoading: isWalletLoading } = useWallet();
 
-  //Transactions (paginated)
+  // Transactions (paginated)
   const {
     data: txsResponse,
     isLoading: isTxLoading,
     isError: isTxError,
   } = useTransactions();
 
-  // unwrap the `data` array
-  const transactions: Transaction[] = txsResponse?.data ?? [];
+  // unwrap the `data` array safely (TransactionsResponse.data is an array per your src/types.ts)
+  const transactions: TTransaction[] = txsResponse?.data ?? [];
   const latestFive = transactions.slice(0, 5);
 
-  //Mutations
+  // Mutations (we use mutateAsync with local loading flags in this file)
   const modSavings = useModifySavings();
   const reqLoan = useRequestLoan();
   const repayLoan = useRepayLoan();
 
   // local form state
-  const [savingsAmt, setSavingsAmt] = useState(0);
-  const [loanAmt, setLoanAmt] = useState(0);
+  const [savingsAmt, setSavingsAmt] = useState<number>(0);
+  const [loanAmt, setLoanAmt] = useState<number>(0);
+
+  // local loading flags (we use mutateAsync + local flags instead of relying on mutation.isLoading)
+  const [isModSavingsLoading, setIsModSavingsLoading] = useState(false);
+  const [isReqLoanLoading, setIsReqLoanLoading] = useState(false);
+  const [isRepayLoanLoading, setIsRepayLoanLoading] = useState(false);
 
   if (isWalletLoading || !overview) {
     return <p>Loading wallet…</p>;
   }
+
+  // coerce balances to numbers for formatting/comparison
+  const balanceNum = Number(overview.balance ?? 0);
+  const savingsNum = Number(overview.savings_balance ?? 0);
+  const loanNum = Number(overview.loan_balance ?? 0);
+
+  // handlers using mutateAsync
+  const handleDepositSavings = async () => {
+    setIsModSavingsLoading(true);
+    try {
+      await modSavings.mutateAsync({ amount: savingsAmt, type: 'deposit' });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsModSavingsLoading(false);
+    }
+  };
+
+  const handleWithdrawSavings = async () => {
+    setIsModSavingsLoading(true);
+    try {
+      await modSavings.mutateAsync({ amount: savingsAmt, type: 'withdraw' });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsModSavingsLoading(false);
+    }
+  };
+
+  const handleRequestLoan = async () => {
+    setIsReqLoanLoading(true);
+    try {
+      await reqLoan.mutateAsync({ amount: loanAmt });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsReqLoanLoading(false);
+    }
+  };
+
+  const handleRepayLoan = async () => {
+    setIsRepayLoanLoading(true);
+    try {
+      await repayLoan.mutateAsync({ amount: loanAmt });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsRepayLoanLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-xl mx-auto">
@@ -61,28 +109,27 @@ export default function WalletPage() {
         <div className="p-4 bg-white rounded shadow text-center">
           <p className="text-sm text-gray-500">Wallet</p>
           <p className="text-2xl font-semibold">
-            KES {isNaN(Number(overview.balance))
-              ? '0.00'
-              : Number(overview.balance).toFixed(2)} </p>
+            KES {Number.isFinite(balanceNum) ? balanceNum.toFixed(2) : '0.00'}
+          </p>
         </div>
+
         <div className="p-4 bg-white rounded shadow text-center">
           <p className="text-sm text-gray-500">Savings</p>
           <p className="text-2xl font-semibold">
-            KES {isNaN(Number(overview.savings_balance))
-              ? '0.00'
-              : Number(overview.savings_balance).toFixed(2)} </p>
+            KES {Number.isFinite(savingsNum) ? savingsNum.toFixed(2) : '0.00'}
+          </p>
         </div>
+
         <div className="p-4 bg-white rounded shadow text-center">
           <p className="text-sm text-gray-500">Loan</p>
           <p className="text-2xl font-semibold text-red-600">
-            -KES {isNaN(Number(overview.loan_balance))
-              ? '0.00'
-              : Number(overview.loan_balance).toFixed(2)} </p>
+            -KES {Number.isFinite(loanNum) ? loanNum.toFixed(2) : '0.00'}
+          </p>
         </div>
       </div>
 
       {/* Actions */}
-      <WalletFundForm/>
+      <WalletFundForm />
       <div className="grid grid-cols-2 gap-4">
         {/* Savings deposit/withdraw */}
         <div className="col-span-2 sm:col-span-1 space-y-2">
@@ -95,18 +142,18 @@ export default function WalletPage() {
           />
           <div className="flex gap-2">
             <button
-              onClick={() => modSavings.mutate({ amount: savingsAmt, type: 'deposit' })}
-              disabled={modSavings.isLoading}
+              onClick={handleDepositSavings}
+              disabled={isModSavingsLoading}
               className="flex-1 py-2 bg-green-600 text-white rounded disabled:opacity-50"
             >
-              {modSavings.isLoading ? 'Processing…' : 'Deposit Savings'}
+              {isModSavingsLoading ? 'Processing…' : 'Deposit Savings'}
             </button>
             <button
-              onClick={() => modSavings.mutate({ amount: savingsAmt, type: 'withdraw' })}
-              disabled={modSavings.isLoading}
+              onClick={handleWithdrawSavings}
+              disabled={isModSavingsLoading}
               className="flex-1 py-2 bg-yellow-600 text-white rounded disabled:opacity-50"
             >
-              {modSavings.isLoading ? 'Processing…' : 'Withdraw Savings'}
+              {isModSavingsLoading ? 'Processing…' : 'Withdraw Savings'}
             </button>
           </div>
         </div>
@@ -122,19 +169,20 @@ export default function WalletPage() {
           />
           <div className="flex gap-2">
             <button
-              onClick={() => reqLoan.mutate({ amount: loanAmt })}
-              disabled={reqLoan.isLoading}
+              onClick={handleRequestLoan}
+              disabled={isReqLoanLoading}
               className="flex-1 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
             >
-              {reqLoan.isLoading ? 'Requesting…' : 'Request Loan'}
+              {isReqLoanLoading ? 'Requesting…' : 'Request Loan'}
             </button>
-            {overview.loan_balance > 0 && (
+
+            {loanNum > 0 && (
               <button
-                onClick={() => repayLoan.mutate({ amount: loanAmt })}
-                disabled={repayLoan.isLoading}
+                onClick={handleRepayLoan}
+                disabled={isRepayLoanLoading}
                 className="flex-1 py-2 bg-red-600 text-white rounded disabled:opacity-50"
               >
-                {repayLoan.isLoading ? 'Repaying…' : 'Repay Loan'}
+                {isRepayLoanLoading ? 'Repaying…' : 'Repay Loan'}
               </button>
             )}
           </div>
@@ -145,12 +193,8 @@ export default function WalletPage() {
       <div className="bg-white rounded shadow p-4">
         <h2 className="font-semibold mb-2">Transactions</h2>
 
-        {isTxLoading && (
-          <p className="text-sm text-gray-500">Loading transactions…</p>
-        )}
-        {isTxError && (
-          <p className="text-sm text-red-600">Failed to load transactions.</p>
-        )}
+        {isTxLoading && <p className="text-sm text-gray-500">Loading transactions…</p>}
+        {isTxError && <p className="text-sm text-red-600">Failed to load transactions.</p>}
         {!isTxLoading && !isTxError && transactions.length === 0 && (
           <p className="text-sm text-gray-500">No transactions found.</p>
         )}

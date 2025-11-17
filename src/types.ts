@@ -1,7 +1,14 @@
 // src/types.ts
+
 export interface Transaction {
   id: number;
-  type: 'deposit'|'withdraw'|'loan_disbursement'|'loan_repayment'|'interest_credit'|'interest_charge';
+  type:
+  | 'deposit'
+  | 'withdraw'
+  | 'loan_disbursement'
+  | 'loan_repayment'
+  | 'interest_credit'
+  | 'interest_charge';
   amount: number;
   description?: string;
   created_at: string;
@@ -18,4 +25,14 @@ export interface TransactionsResponse {
     per_page: number;
     total: number;
   };
+}
+
+/**
+ * WalletOverview represents the wallet-level summary your API returns.
+ * Use numbers here (coerce at the UI if your API returns strings).
+ */
+export interface WalletOverview {
+  balance: number;
+  savings_balance: number;
+  loan_balance: number;
 }
