@@ -14,12 +14,95 @@ export default function RideDetailPage({ params }) {
   const [error, setError] = useState(null);
   const update = useUpdateRequest();
 
+  // address UI states
+  const [pickupAddr, setPickupAddr] = useState({ text: '', loading: false, cached: false });
+  const [dropoffAddr, setDropoffAddr] = useState({ text: '', loading: false, cached: false });
+
   useEffect(() => {
+    setError(null);
     api
       .get(`/api/requests/${id}`)
       .then(res => setRide(res.data))
       .catch(() => setError('Failed to load ride details'));
   }, [id]);
+
+  // Robust fetch helper that returns { ok, status, json, text, error }
+  async function safeFetchJson(url, opts = {}) {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: 'application/json' },
+        ...opts,
+      });
+      const text = await res.text();
+      let json = null;
+      try { json = text ? JSON.parse(text) : null; } catch { json = null; }
+      return { ok: res.ok, status: res.status, json, text };
+    } catch (err) {
+      return { ok: false, status: 0, json: null, text: null, error: err };
+    }
+  }
+
+  // fetch single address and set state
+  const fetchAddress = async (lat, lon, setState, signal) => {
+    if (lat == null || lon == null) {
+      setState({ text: '(no coordinates)', loading: false, cached: false });
+      return;
+    }
+
+    setState(prev => ({ ...prev, loading: true }));
+
+    const base = process.env.NEXT_PUBLIC_API_URL ?? '';
+    const url = `${base}/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+
+    // attach signal if available
+    const opts = signal ? { signal } : {};
+
+    const { ok, status, json, error } = await safeFetchJson(url, opts);
+
+    // prefer display_name if present
+    if (json && json.display_name) {
+      setState({ text: json.display_name, loading: false, cached: !!json.cached });
+      return;
+    }
+
+    // If server returned a display_name inside error payload (older behavior)
+    if (json && json.display_name) {
+      setState({ text: json.display_name, loading: false, cached: !!json.cached });
+      return;
+    }
+
+    // Handle common statuses with friendly messages
+    if (status === 401) {
+      setState({ text: `Sign in to look up address — (${Number(lat).toFixed(5)}, ${Number(lon).toFixed(5)})`, loading: false, cached: false });
+      return;
+    }
+
+    if (status === 404) {
+      setState({ text: `Address not found — (${Number(lat).toFixed(5)}, ${Number(lon).toFixed(5)})`, loading: false, cached: false });
+      return;
+    }
+
+    if (error) {
+      console.warn('Reverse geocode fetch failed', error);
+      setState({ text: `Lookup failed — (${Number(lat).toFixed(5)}, ${Number(lon).toFixed(5)})`, loading: false, cached: false });
+      return;
+    }
+
+    // final fallback: coordinates
+    setState({ text: `(${Number(lat).toFixed(5)}, ${Number(lon).toFixed(5)})`, loading: false, cached: false });
+  };
+
+  // When ride loads, fetch pickup/dropoff addresses
+  useEffect(() => {
+    if (!ride) return;
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
+    fetchAddress(ride.pickup_lat, ride.pickup_lng, setPickupAddr, signal);
+    fetchAddress(ride.dropoff_lat, ride.dropoff_lng, setDropoffAddr, signal);
+
+    return () => abortController.abort();
+  }, [ride?.pickup_lat, ride?.pickup_lng, ride?.dropoff_lat, ride?.dropoff_lng, ride]);
 
   const handleUpdate = (status) => {
     if (!ride) return;
@@ -68,17 +151,37 @@ export default function RideDetailPage({ params }) {
           </div>
         )}
 
-        <div className="py-2 flex justify-between">
+        <div className="py-2 flex justify-between items-start">
           <dt className="font-semibold text-zinc-600">Pickup</dt>
-          <dd className="font-mono">
-            {Number(ride.pickup_lat).toFixed(5)}, {Number(ride.pickup_lng).toFixed(5)}
+          <dd className="max-w-[60%]">
+            <div className="flex items-center gap-2">
+              <p className="text-sm truncate" title={pickupAddr.text}>
+                {pickupAddr.loading ? 'Searching address…' : pickupAddr.text || `(${Number(ride.pickup_lat).toFixed(5)}, ${Number(ride.pickup_lng).toFixed(5)})`}
+              </p>
+              {pickupAddr.cached && (
+                <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded">cached</span>
+              )}
+            </div>
+            <p className="text-xs text-zinc-500 font-mono mt-1">
+              {Number(ride.pickup_lat).toFixed(5)}, {Number(ride.pickup_lng).toFixed(5)}
+            </p>
           </dd>
         </div>
 
-        <div className="py-2 flex justify-between">
+        <div className="py-2 flex justify-between items-start">
           <dt className="font-semibold text-zinc-600">Drop-off</dt>
-          <dd className="font-mono">
-            {Number(ride.dropoff_lat).toFixed(5)}, {Number(ride.dropoff_lng).toFixed(5)}
+          <dd className="max-w-[60%]">
+            <div className="flex items-center gap-2">
+              <p className="text-sm truncate" title={dropoffAddr.text}>
+                {dropoffAddr.loading ? 'Searching address…' : dropoffAddr.text || `(${Number(ride.dropoff_lat).toFixed(5)}, ${Number(ride.dropoff_lng).toFixed(5)})`}
+              </p>
+              {dropoffAddr.cached && (
+                <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded">cached</span>
+              )}
+            </div>
+            <p className="text-xs text-zinc-500 font-mono mt-1">
+              {Number(ride.dropoff_lat).toFixed(5)}, {Number(ride.dropoff_lng).toFixed(5)}
+            </p>
           </dd>
         </div>
       </dl>
@@ -112,4 +215,3 @@ export default function RideDetailPage({ params }) {
     </div>
   );
 }
-
