@@ -3,6 +3,7 @@
 "use client";
 import './globals.css'
 import { Toaster } from 'react-hot-toast';
+import { Analytics } from "@vercel/analytics/next"
 
 // 1dynamically import the AuthProvider so it's purely client‑side
 import dynamic from 'next/dynamic'
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gradient-to-r from-indigo-50 to-purple-100 text-gray-800">
+        <Analytics />
         <Toaster position="top-right" />
         <QueryClientProvider client={queryClient}>
           <AuthProvider>{children}</AuthProvider>
