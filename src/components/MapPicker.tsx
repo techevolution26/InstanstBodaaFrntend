@@ -1,18 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useReverseGeocode } from '@/hooks/useReverseGeocode';
 
-// Fix Leaflet’s default icon URLs (for SSR-compatible rendering)
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl:
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
 type MapPickerProps = {
@@ -21,36 +19,9 @@ type MapPickerProps = {
   label: string;
 };
 
-export default function MapPicker({
-  position,
-  setPosition,
-  label,
-}: MapPickerProps) {
-  const [address, setAddress] = useState<string>(
-    `(${position[0].toFixed(5)}, ${position[1].toFixed(5)})`
-  );
-
-  // fetch helper
-  const fetchAddress = async (lat: number, lon: number) => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/reverse-geocode?lat=${lat}&lon=${lon}`
-      );
-      const data = await res.json();
-      if (res.ok && data.display_name) {
-        setAddress(data.display_name);
-        return;
-      }
-    } catch {
-      // ignore, fallback to coords
-    }
-    setAddress(`(${lat.toFixed(5)}, ${lon.toFixed(5)})`);
-  };
-
-  // whenever position changes, re-fetch
-  useEffect(() => {
-    fetchAddress(position[0], position[1]);
-  }, [position[0], position[1]]);
+export default function MapPicker({ position, setPosition, label }: MapPickerProps) {
+  const [lat, lon] = position;
+  const { loading, result, refresh } = useReverseGeocode(lat, lon, 300);
 
   function LocationMarker() {
     useMapEvents({
@@ -74,35 +45,53 @@ export default function MapPicker({
     );
   }
 
+  // expose a small UI for refreshing (force) and copying address
   return (
     <div className="w-full bg-white rounded-md border border-zinc-200 shadow-sm overflow-hidden mb-6">
-      <div className="px-4 pt-4">
-        <label className="block text-sm font-medium text-zinc-700 mb-1">
-          {label}
-        </label>
+      <div className="px-4 pt-4 flex items-center justify-between">
+        <label className="block text-sm font-medium text-zinc-700 mb-1">{label}</label>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              refresh(true); // force refresh from server
+            }}
+            className="text-xs px-2 py-1 bg-zinc-100 rounded"
+            aria-label="Refresh address"
+          >
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard?.writeText(result?.display_name ?? `${lat.toFixed(5)}, ${lon.toFixed(5)}`);
+            }}
+            className="text-xs px-2 py-1 bg-zinc-100 rounded"
+            aria-label="Copy address"
+          >
+            Copy
+          </button>
+        </div>
       </div>
-      <div
-        className="relative"
-        style={{ height: '300px', minHeight: '200px' }}
-      >
+
+      <div className="relative" style={{ height: '300px', minHeight: '200px' }}>
         <MapContainer
           center={position}
           zoom={13}
-          scrollWheelZoom={true}
-          className="absolute inset-0"
-          style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}
+          scrollWheelZoom
+          className="absolute inset-0 z-0"
+          style={{ height: '100%', width: '100%', zIndex: 0 }}
         >
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocationMarker />
         </MapContainer>
       </div>
-      <div className="px-4 py-3 border-t bg-zinc-50">
-        <p className="text-sm text-zinc-600 font-mono">
-          {address}
+
+      <div className="px-4 py-3 border-t bg-zinc-50 flex items-center justify-between">
+        <p className="text-sm text-zinc-600 truncate" title={result?.display_name ?? undefined} aria-live="polite">
+          {loading ? 'Searching address…' : result?.display_name ?? `(${lat.toFixed(5)}, ${lon.toFixed(5)})`}
         </p>
+        {/* dropped cached badge as requested */}
       </div>
     </div>
   );
